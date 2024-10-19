@@ -30,9 +30,6 @@ async function fetchDataUsingProxy(url) {
   try {
     const result = await axios.get(url, { 
       httpAgent: agent, 
-      headers: {
-        'Cookie': '_ga=GA1.2.1714932629.1729306364; _gid=GA1.2.94538758.1729306364; _gat=1'
-      }
     });
     return result;
   } catch (error) {
