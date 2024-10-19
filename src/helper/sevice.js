@@ -3,7 +3,8 @@ const { SocksProxyAgent } = require('socks-proxy-agent');
 
 async function fetchProxies() {
   try {
-    const response = await axios.get('https://raw.githubusercontent.com/proxifly/free-pr>
+    const response = await axios.get('https://raw.githubusercontent.com/proxifly/free-proxy-list/refs/heads/main/proxies/protocols/socks5/data.json');
+                                     
     return response.data;
   } catch (error) {
     console.error('Error fetching proxy list:', error);
