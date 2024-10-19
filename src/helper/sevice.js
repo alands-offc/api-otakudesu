@@ -1,77 +1,58 @@
-const axios = require("axios");
+const axios = require('axios');
+const { SocksProxyAgent } = require('socks-proxy-agent');
 
-// API Keys
-const zenRowsApiKey = '26c7d85d7f3af6a1288d96a38705b1419688e27e';
-const zyteApiKey = '61671b406b4743278980bb891919da21';
-
-// ZenRows fetch function
-async function fetchWithZenRows(url) {
-    try {
-        const zenRowsUrl = `https://api.zenrows.com/v1/?apikey=${zenRowsApiKey}&url=${encodeURIComponent(url)}&js_render=true&premium_proxy=true`;
-        const response = await axios.get(zenRowsUrl);
-        console.log(response.data)
-        return response.data;
-    } catch (error) {
-        console.error('ZenRows Error:', error.response?.data || error.message);
-        throw new Error('ZenRows request failed');
-    }
+async function fetchProxies() {
+  try {
+    const response = await axios.get('https://raw.githubusercontent.com/proxifly/free-pr>
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching proxy list:', error);
+    return [];
+  }
 }
 
-// Zyte fallback function
-async function fetchWithZyte(url) {
-    try {
-        const zyteUrl = `https://api.zyte.com/v1/extract`;
-        const response = await axios.post(zyteUrl,
-        {
-        url: url,
-        "httpResponseBody": true 
-            },
-            {
-              auth: { username: '61671b406b4743278980bb891919da21' }
-            });/*
-        "https://api.zyte.com/v1/extract",
-  {
-    "url": "https://books.toscrape.com/",  
-    "httpResponseBody": true 
-  },
-  {
-    auth: { username: '61671b406b4743278980bb891919da21' }
-  }*/
-  console.log(response.data.httpResponseBody)
-        return {
-          data: response.data.httpResponseBody
-        };
-    } catch (error) {
-        console.error('Zyte Error:', error.response?.data || error.message);
-        throw new Error('Zyte request failed');
-    }
+async function fetchDataUsingProxy(url) {
+  const proxies = await fetchProxies();
+
+  if (proxies.length === 0) {
+    console.log('No proxies available.');
+    return;
+  }
+
+  // Ambil proxy acak dari daftar
+  const randomProxy = proxies[Math.floor(Math.random() * proxies.length)];
+  const proxy = randomProxy.proxy;
+
+  console.log(`Using proxy: ${proxy}`);
+
+  const agent = new SocksProxyAgent(proxy);
+
+  try {
+    const result = await axios.get(url, { httpAgent: agent });
+    return result
+  } catch (error) {
+    console.error('Error fetching data:', error);
+  }
 }
 
-// Main fetch function
+// Ganti dengan URL target yang ingin diakses
 const Service = {
-fetchService: async(url, res) => {
-    try {
-        const zenRowsData = await fetchWithZenRows(url);
-        return {
-            status: 200,
-            service: 'ZenRows',
-            data: zenRowsData,
-        };
-    } catch (error) {
-        console.log('Falling back to Zyte...');
-     /*   try {
-            // If ZenRows fails, try Zyte
-         //   const zyteData = await fetchWithZyte(url);
-            return zyteData
-        } catch (zyteError) {
-            res.json({
+    fetchService: async (url, res) => {
+        try {
+            const response = await fetchDataUsingProxy(url)
+            return new Promise((resolve, reject) => {
+                if (response.status === 200) resolve(response)
+                reject(response)
+            })
+        } catch (error) {
+            res.send({
                 status: false,
-                message: 'Both ZenRows and Zyte requests failed',
-                data: zyteError
-            });
-        }*/
+                code: 404,
+                message: "Bad Request"
+            })
+            throw error
+        }
     }
 }
-}
-module.exports = Service
 
+module.exports = Service
