@@ -21,6 +21,7 @@
     "nodemon": "^2.0.20",
     "puppeteer": "^19.2.2",
     "qs": "^6.11.0",
+    "cloudscraper":"latest",
     "socks-proxy-agent": "latest"
   }
 }
