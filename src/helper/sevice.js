@@ -1,10 +1,10 @@
-const axios = require('axios');
+const cloudscraper = require('cloudscraper');
 const { SocksProxyAgent } = require('socks-proxy-agent');
 
 async function fetchProxies() {
   try {
-    const response = await axios.get('https://raw.githubusercontent.com/proxifly/free-proxy-list/refs/heads/main/proxies/protocols/socks5/data.json');
-    return response.data;
+    const response = await cloudscraper.get('https://raw.githubusercontent.com/proxifly/free-proxy-list/refs/heads/main/proxies/protocols/socks5/data.json');
+    return JSON.parse(response);
   } catch (error) {
     console.error('Error fetching proxy list:', error);
     return [];
@@ -19,7 +19,7 @@ async function fetchDataUsingProxy(url) {
     return;
   }
 
-  // Select a random proxy from the list
+  // Pick a random proxy from the list
   const randomProxy = proxies[Math.floor(Math.random() * proxies.length)];
   const proxy = `socks5://${randomProxy.ip}:${randomProxy.port}`;
 
@@ -28,8 +28,12 @@ async function fetchDataUsingProxy(url) {
   const agent = new SocksProxyAgent(proxy);
 
   try {
-    const result = await axios.get(url, { 
-      httpAgent: agent, 
+    const result = await cloudscraper.get({
+      url,
+      agent: agent,
+      headers: {
+        'Cookie': '_ga=GA1.2.1714932629.1729306364; _gid=GA1.2.94538758.1729306364',
+      }
     });
     return result;
   } catch (error) {
@@ -43,10 +47,10 @@ const Service = {
     try {
       const response = await fetchDataUsingProxy(url);
       return new Promise((resolve, reject) => {
-        if (response.status === 200) {
-          resolve(response.data);
+        if (response) {
+          resolve(response);
         } else {
-          reject(new Error(`Error: Status code ${response.status}`));
+          reject(new Error('No response from server'));
         }
       });
     } catch (error) {
