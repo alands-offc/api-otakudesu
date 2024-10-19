@@ -46,10 +46,11 @@ const Service = {
                 reject(response)
             })
         } catch (error) {
-            res.send({
+            res.json({
                 status: false,
                 code: 404,
-                message: "Bad Request"
+                message: "Bad Request",
+                error
             })
             throw error
         }
